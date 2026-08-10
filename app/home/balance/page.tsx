@@ -1,9 +1,16 @@
 import { redirect } from 'next/navigation';
 
+import { ActivityChart } from '@/components/ActivityChart';
 import { BalanceMeter } from '@/components/BalanceMeter';
 import { getIdentity } from '@/lib/auth/session';
 import { describeBalance } from '@/lib/domain/fairness';
+import { describeStreak } from '@/lib/domain/streaks';
 import { getHouseholdBalance, getRecentActivity } from '@/lib/services/ledger';
+import {
+  getMemberStreak,
+  getMostSkippedChores,
+  getWeeklyActivity,
+} from '@/lib/services/insights';
 import { householdToday } from '@/lib/services/scheduling';
 
 export const metadata = { title: 'Balance' };
@@ -20,12 +27,17 @@ export default async function BalancePage() {
   const identity = await getIdentity();
   if (!identity) redirect('/');
 
-  const { household } = identity;
+  const { household, member: viewer } = identity;
   const today = householdToday(household);
-  const [{ report, members, nameOf }, activity] = await Promise.all([
+  const [{ report, members, nameOf }, activity, weeks, streak, skipped] = await Promise.all([
     getHouseholdBalance(household, today),
     getRecentActivity(household, 20),
+    getWeeklyActivity(household, today),
+    getMemberStreak(household, viewer.id, today),
+    getMostSkippedChores(household),
   ]);
+
+  const streakLine = describeStreak(streak);
 
   const tone = scoreTone(report.balance);
 
@@ -50,6 +62,17 @@ export default async function BalancePage() {
         <p className="mt-6 max-w-md text-[15px] text-pretty text-ink-muted">
           {describeBalance(report, nameOf)}
         </p>
+
+        {streakLine && (
+          <p className="mt-4 border-t border-line pt-4 text-sm text-ink-muted">
+            <span className="text-ink">You:</span> {streakLine}
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="eyebrow mb-4">Over time</h2>
+        <ActivityChart weeks={weeks} />
       </section>
 
       <section>
@@ -87,6 +110,32 @@ export default async function BalancePage() {
           than taking a bin out.
         </p>
       </section>
+
+      {skipped.length > 0 && (
+        <section>
+          <h2 className="eyebrow mb-4">Worth a conversation</h2>
+          <ul className="panel px-4">
+            {skipped.map((insight) => (
+              <li
+                key={insight.choreId}
+                className="flex items-center gap-3 border-b border-line py-3 text-sm last:border-b-0"
+              >
+                <span aria-hidden className="text-[17px] leading-none">
+                  {insight.icon}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{insight.name}</span>
+                <span className="numeric shrink-0 text-xs text-ink-faint">
+                  skipped {insight.skipRate}% of the time
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 max-w-md text-xs text-pretty text-ink-faint">
+            A chore the house keeps skipping is usually a chore the house doesn&rsquo;t need.
+            Worth deciding on purpose rather than leaving it to be ignored every week.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
