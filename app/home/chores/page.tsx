@@ -24,8 +24,9 @@ export default async function ChoresPage() {
     listMembers(household.id),
   ]);
 
-  const memberName = (id: string | null) =>
-    members.find((member) => member.id === id)?.name ?? 'someone';
+  // Built once rather than scanned per chore.
+  const nameById = new Map(members.map((member) => [member.id, member.name]));
+  const memberName = (id: string | null) => (id && nameById.get(id)) || 'someone';
 
   return (
     <div className="space-y-8">

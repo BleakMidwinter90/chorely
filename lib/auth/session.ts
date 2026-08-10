@@ -12,6 +12,7 @@
  */
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { eq } from 'drizzle-orm';
 
@@ -73,8 +74,12 @@ export async function startSession(memberId: string, householdId: string): Promi
  *
  * Returns null rather than throwing for archived members, so someone removed
  * from a household is quietly signed out instead of hitting an error page.
+ *
+ * Wrapped in React's `cache`, which deduplicates it per request. The layout
+ * needs the identity to render the header, and every page beneath it needs the
+ * same identity — without this, each page load ran the session join twice.
  */
-export async function getIdentity(): Promise<Identity | null> {
+export const getIdentity = cache(async (): Promise<Identity | null> => {
   // Every page and action funnels through here, which makes it the natural
   // place to guarantee the schema exists. Self-hosters should never have to run
   // a migration command after pulling a new image.
@@ -95,7 +100,7 @@ export async function getIdentity(): Promise<Identity | null> {
   const row = rows[0];
   if (!row || row.member.archivedAt) return null;
   return { member: row.member, household: row.household };
-}
+});
 
 /**
  * Identity or bust.
