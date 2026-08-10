@@ -1,0 +1,15 @@
+services:
+  chorely:
+    build: .
+    # Or, once images are published:
+    # image: ghcr.io/bleakmidwinter90/chorely:latest
+    ports:
+      - '3000:3000'
+    volumes:
+      # Everything lives in one SQLite file. Back this up and you have backed up
+      # the whole household.
+      - chorely-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  chorely-data:
