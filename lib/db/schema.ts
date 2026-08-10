@@ -90,6 +90,14 @@ export const chores = sqliteTable(
     /** 1–5. Scrubbing the oven is not taking out a bin. */
     effort: integer('effort').notNull().default(2),
     recurrence: text('recurrence', { mode: 'json' }).notNull().$type<Recurrence>(),
+    /**
+     * Free text shown alongside the chore.
+     *
+     * For the practical knowledge that otherwise lives in one person's head -
+     * where the hoover bags are kept, which bin goes out on which week. That
+     * knowledge is a real part of why chores end up unevenly distributed.
+     */
+    notes: text('notes'),
     rotationMode: text('rotation_mode').notNull().$type<RotationMode>().default('fair'),
     /** Owner, for `fixed` rotation. */
     fixedMemberId: text('fixed_member_id').references(() => members.id, { onDelete: 'set null' }),
@@ -241,6 +249,32 @@ export const shoppingItems = sqliteTable(
     createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
   },
   (table) => [index('shopping_household_idx').on(table.householdId, table.boughtAt)],
+);
+
+/**
+ * A record that someone reminded someone else about a chore.
+ *
+ * Exists purely to rate-limit. One nudge per chore per day, household-wide -
+ * not per sender, or three housemates each sending "just one" reminder is four
+ * notifications about the same bin, which is how an app gets muted.
+ */
+export const nudges = sqliteTable(
+  'nudges',
+  {
+    id: text('id').primaryKey(),
+    householdId: text('household_id')
+      .notNull()
+      .references(() => households.id, { onDelete: 'cascade' }),
+    occurrenceId: text('occurrence_id')
+      .notNull()
+      .references(() => occurrences.id, { onDelete: 'cascade' }),
+    fromMemberId: text('from_member_id').references(() => members.id, { onDelete: 'set null' }),
+    toMemberId: text('to_member_id').references(() => members.id, { onDelete: 'set null' }),
+    /** `YYYY-MM-DD` in household time. */
+    sentOn: text('sent_on').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+  },
+  (table) => [index('nudges_occurrence_idx').on(table.occurrenceId, table.sentOn)],
 );
 
 export const householdsRelations = relations(households, ({ many }) => ({

@@ -1,6 +1,11 @@
-import { Check, X } from 'lucide-react';
+import { Bell, Check, Forward, X } from 'lucide-react';
 
-import { completeChoreAction, skipChoreAction } from '@/app/actions';
+import {
+  completeChoreAction,
+  handOverChoreAction,
+  nudgeChoreAction,
+  skipChoreAction,
+} from '@/app/actions';
 import { SubmitButton } from '@/components/SubmitButton';
 import { daysOverdue } from '@/lib/domain/recurrence';
 import type { IsoDate } from '@/lib/domain/types';
@@ -35,9 +40,10 @@ interface ChoreRowProps {
 export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
   const isMine = item.assignee?.id === viewerId;
   const isLate = item.status === 'overdue';
+  const isDue = item.status !== 'upcoming';
 
   return (
-    <li className="group flex items-center gap-3 border-b border-line px-1 py-3 last:border-b-0">
+    <li className="flex items-center gap-3 border-b border-line px-1 py-3 last:border-b-0">
       <span
         aria-hidden
         className="grid size-10 shrink-0 place-items-center rounded-xl bg-sunk text-[19px] leading-none"
@@ -62,9 +68,51 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
               : 'Anyone'}
           </span>
         </p>
+        {item.chore.notes && (
+          <p className="mt-1 truncate text-xs text-ink-faint italic">{item.chore.notes}</p>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
+        {/*
+          Exactly one social action, chosen by context, so the row never grows a
+          row of buttons. Your own chore can be passed on; somebody else's can be
+          mentioned — and only once it is actually due, since chasing someone
+          about tomorrow is nagging.
+        */}
+        {isMine ? (
+          <form action={handOverChoreAction}>
+            <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
+            <SubmitButton
+              variant="quiet"
+              size="sm"
+              icon={<Forward size={15} strokeWidth={1.8} aria-hidden />}
+              label={`Pass ${item.chore.name} to someone else`}
+              title="Pass this to whoever has done least lately"
+              className="!px-2.5"
+            >
+              <span className="sr-only" />
+            </SubmitButton>
+          </form>
+        ) : (
+          item.assignee &&
+          isDue && (
+            <form action={nudgeChoreAction}>
+              <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
+              <SubmitButton
+                variant="quiet"
+                size="sm"
+                icon={<Bell size={15} strokeWidth={1.8} aria-hidden />}
+                label={`Mention ${item.chore.name} to ${item.assignee.name}`}
+                title={`Mention this to ${item.assignee.name} — once a day at most`}
+                className="!px-2.5"
+              >
+                <span className="sr-only" />
+              </SubmitButton>
+            </form>
+          )
+        )}
+
         <form action={skipChoreAction}>
           <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
           <SubmitButton

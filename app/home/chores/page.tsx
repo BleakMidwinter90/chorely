@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { archiveChoreAction } from '@/app/actions';
+import { ChoreNotes } from '@/components/ChoreNotes';
 import { NewChoreForm } from '@/components/NewChoreForm';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
@@ -58,6 +59,7 @@ export default async function ChoresPage() {
                     ? `Always ${memberName(chore.fixedMemberId)}`
                     : ROTATION_LABEL[chore.rotationMode]}
                 </p>
+                <ChoreNotes choreId={chore.id} notes={chore.notes} />
               </div>
               <form action={archiveChoreAction}>
                 <input type="hidden" name="choreId" value={chore.id} />
