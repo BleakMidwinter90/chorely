@@ -13,7 +13,7 @@
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { cache } from 'react';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 
 import { getDb } from '../db/client';
@@ -49,6 +49,32 @@ export interface Identity {
   household: Household;
 }
 
+/**
+ * Whether to mark the session cookie `Secure`.
+ *
+ * This cannot key off `NODE_ENV`. The primary way chorely gets deployed is a
+ * container on a home network, reached over plain HTTP at something like
+ * `http://192.168.1.20:3000` — and a browser silently discards a `Secure`
+ * cookie on an insecure origin. Marking it `Secure` in production therefore
+ * breaks sign-in completely for exactly the people this project is built for,
+ * and does it invisibly: the page loads, the cookie vanishes, and every action
+ * afterwards claims you are not signed in.
+ *
+ * So the flag follows the actual protocol of the request. Set `COOKIE_SECURE=1`
+ * to force it on behind a proxy that does not send `x-forwarded-proto`.
+ */
+export function isSecureRequest(forwardedProto: string | null, override?: string): boolean {
+  if (override === '1') return true;
+  if (override === '0') return false;
+  // A proxy chain sends a comma-separated list; the first entry is the client.
+  return forwardedProto?.split(',')[0].trim().toLowerCase() === 'https';
+}
+
+async function shouldUseSecureCookie(): Promise<boolean> {
+  const headerList = await headers();
+  return isSecureRequest(headerList.get('x-forwarded-proto'), process.env.COOKIE_SECURE);
+}
+
 /** Issue a session for `memberId` and set the cookie on the response. */
 export async function startSession(memberId: string, householdId: string): Promise<void> {
   const token = createSessionToken();
@@ -63,7 +89,7 @@ export async function startSession(memberId: string, householdId: string): Promi
   jar.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: await shouldUseSecureCookie(),
     path: '/',
     maxAge: ONE_YEAR_SECONDS,
   });

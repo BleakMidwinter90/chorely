@@ -14,6 +14,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Standalone output is opt-in so it cannot break `next start` for everyone else.
+ENV BUILD_STANDALONE=1
 RUN npm run build
 
 FROM node:22-alpine AS runner

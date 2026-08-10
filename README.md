@@ -109,6 +109,19 @@ If you expose chorely to the public internet, put it behind HTTPS.
 | `DATABASE_URL` | `file:./data/chorely.db` | SQLite file path, or a Turso URL for a hosted deployment |
 | `DATABASE_AUTH_TOKEN` | — | Turso auth token; ignored for local files |
 | `PORT` | `3000` | Port to listen on |
+| `COOKIE_SECURE` | auto | Force the session cookie's `Secure` flag on (`1`) or off (`0`) |
+
+By default the `Secure` flag follows the actual protocol of the request, read from `x-forwarded-proto`. That means it works out of the box both on a home network over plain HTTP and behind an HTTPS reverse proxy. Set `COOKIE_SECURE=1` only if your proxy terminates TLS without setting that header.
+
+### Trying it with demo data
+
+An empty app doesn't show what the balance score is for. To populate a three-person share house with a few weeks of deliberately uneven history:
+
+```bash
+node scripts/demo-seed.mjs
+```
+
+Safe to re-run — it clears the demo household first. Don't point it at a database you care about.
 
 ### Backups
 
