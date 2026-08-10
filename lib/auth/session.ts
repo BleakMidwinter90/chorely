@@ -16,6 +16,7 @@ import { cookies } from 'next/headers';
 import { eq } from 'drizzle-orm';
 
 import { getDb } from '../db/client';
+import { ensureMigrated } from '../db/migrate';
 import { households, members, sessions, type Household, type Member } from '../db/schema';
 
 const COOKIE_NAME = 'chorely_session';
@@ -74,6 +75,11 @@ export async function startSession(memberId: string, householdId: string): Promi
  * from a household is quietly signed out instead of hitting an error page.
  */
 export async function getIdentity(): Promise<Identity | null> {
+  // Every page and action funnels through here, which makes it the natural
+  // place to guarantee the schema exists. Self-hosters should never have to run
+  // a migration command after pulling a new image.
+  await ensureMigrated();
+
   const jar = await cookies();
   const token = jar.get(COOKIE_NAME)?.value;
   if (!token) return null;
