@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 import { requireIdentity, startSession, endSession } from '@/lib/auth/session';
 import { getDb } from '@/lib/db/client';
-import { members } from '@/lib/db/schema';
+import { chores, members } from '@/lib/db/schema';
 import { MAX_EFFORT, MIN_EFFORT, type Recurrence } from '@/lib/domain/types';
 import {
   archiveChore,
@@ -26,6 +26,7 @@ import {
   reassignOpenOccurrences,
 } from '@/lib/services/households';
 import { completeOccurrence, householdToday, skipOccurrence } from '@/lib/services/scheduling';
+import { handOverOccurrence, nudgeAboutOccurrence } from '@/lib/services/social';
 import {
   addShoppingItem,
   clearBoughtItems,
@@ -297,6 +298,46 @@ export async function updateReminderPrefsAction(formData: FormData): Promise<voi
     .where(eq(members.id, member.id));
 
   revalidatePath('/home/settings');
+}
+
+/* ------------------------------------------------------------------ social */
+
+export async function handOverChoreAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+  const occurrenceId = String(formData.get('occurrenceId') ?? '');
+  if (!occurrenceId) return;
+
+  await handOverOccurrence(household, occurrenceId, householdToday(household));
+  revalidateHousehold();
+}
+
+export async function nudgeChoreAction(formData: FormData): Promise<void> {
+  const { household, member } = await requireIdentity();
+  const occurrenceId = String(formData.get('occurrenceId') ?? '');
+  if (!occurrenceId) return;
+
+  await nudgeAboutOccurrence(household, occurrenceId, member.id, householdToday(household));
+  revalidateHousehold();
+}
+
+/**
+ * Practical knowledge about a chore - where the hoover bags live, which bin
+ * goes out this week. Any member can edit any note; there are no owners here.
+ */
+export async function updateChoreNotesAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+
+  const parsed = z
+    .object({ choreId: z.string().trim().min(1), notes: z.string().trim().max(500) })
+    .safeParse({ choreId: formData.get('choreId'), notes: formData.get('notes') ?? '' });
+  if (!parsed.success) return;
+
+  await getDb()
+    .update(chores)
+    .set({ notes: parsed.data.notes || null })
+    .where(and(eq(chores.id, parsed.data.choreId), eq(chores.householdId, household.id)));
+
+  revalidateHousehold();
 }
 
 /* ---------------------------------------------------------------- shopping */
