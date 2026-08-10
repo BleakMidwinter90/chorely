@@ -26,8 +26,12 @@ jobs:
       - name: Lint
         run: npx eslint .
 
+      # `npm run typecheck` runs `next typegen` first. Next generates the
+      # `PageProps`/`LayoutProps` globals into .next/types, which is gitignored,
+      # so a bare `tsc` on a fresh clone fails on types that exist on every
+      # developer machine that has run a build.
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Test
         run: npm run test
