@@ -7,20 +7,24 @@ import { AVATAR_EMOJI, EmojiField } from '@/components/EmojiField';
 import { FormError } from '@/components/FormError';
 import { SubmitButton } from '@/components/SubmitButton';
 import { TimezoneField } from '@/components/TimezoneField';
-
-const inputClass =
-  'tap w-full rounded-xl border border-line bg-surface-sunk px-4 text-base outline-none focus:ring-2 focus:ring-accent';
+import { fieldClass, labelClass } from '@/components/formStyles';
 
 export function CreateHouseholdForm() {
   const [state, formAction] = useActionState<ActionState, FormData>(createHouseholdAction, {});
 
   return (
-    <form action={formAction} className="card space-y-5 p-6">
+    <form action={formAction} className="panel space-y-6 p-6 sm:p-7">
       <TimezoneField />
+
+      <div>
+        <h2 className="display text-2xl">Start a home</h2>
+        <p className="mt-1.5 text-sm text-ink-muted">Takes about twenty seconds.</p>
+      </div>
+
       <FormError message={state.error} />
 
       <div>
-        <label htmlFor="householdName" className="mb-2 block text-sm font-medium text-ink-muted">
+        <label htmlFor="householdName" className={labelClass}>
           What should we call your home?
         </label>
         <input
@@ -30,12 +34,12 @@ export function CreateHouseholdForm() {
           maxLength={60}
           autoComplete="off"
           placeholder="Flat 3B"
-          className={inputClass}
+          className={fieldClass}
         />
       </div>
 
       <div>
-        <label htmlFor="memberName" className="mb-2 block text-sm font-medium text-ink-muted">
+        <label htmlFor="memberName" className={labelClass}>
           And your name?
         </label>
         <input
@@ -45,19 +49,17 @@ export function CreateHouseholdForm() {
           maxLength={60}
           autoComplete="given-name"
           placeholder="Ana"
-          className={inputClass}
+          className={fieldClass}
         />
       </div>
 
       <EmojiField name="emoji" label="Pick yourself" options={AVATAR_EMOJI} />
 
-      <SubmitButton className="w-full" pendingLabel="Setting things up…">
-        Create my home
-      </SubmitButton>
+      <SubmitButton className="w-full">Create my home</SubmitButton>
 
-      <p className="text-center text-xs text-ink-muted">
-        No account, no email, no password. You&rsquo;ll get a link to share with everyone you live
-        with.
+      <p className="text-center text-xs leading-relaxed text-ink-faint">
+        No account, no email, no password. You&rsquo;ll get a link to share with everyone you
+        live with.
       </p>
     </form>
   );

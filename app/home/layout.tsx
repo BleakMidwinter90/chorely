@@ -1,8 +1,16 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-
+import { NavLink, type NavIcon } from '@/components/NavLink';
 import { getIdentity } from '@/lib/auth/session';
-import { NavLink } from '@/components/NavLink';
+
+// Names rather than components: a function cannot cross the Server→Client
+// boundary, so NavLink resolves these on its own side.
+const NAV: Array<{ href: string; label: string; icon: NavIcon }> = [
+  { href: '/home', label: 'Today', icon: 'today' },
+  { href: '/home/balance', label: 'Balance', icon: 'balance' },
+  { href: '/home/chores', label: 'Chores', icon: 'chores' },
+  { href: '/home/settings', label: 'Home', icon: 'home' },
+];
 
 export default async function HomeLayout({ children }: LayoutProps<'/home'>) {
   const identity = await getIdentity();
@@ -12,41 +20,45 @@ export default async function HomeLayout({ children }: LayoutProps<'/home'>) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-5 py-3">
-          <Link href="/home" className="min-w-0">
-            <span className="block truncate text-sm font-semibold">{household.name}</span>
-            <span className="block truncate text-xs text-ink-muted">
-              {member.emoji} {member.name}
+      <header className="sticky top-0 z-20 border-b border-line bg-paper/85 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-5 py-3">
+          <Link href="/home" className="group flex min-w-0 items-center gap-2.5">
+            <span
+              aria-hidden
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft text-[15px] leading-none"
+            >
+              {member.emoji}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[13px] font-medium leading-tight">
+                {household.name}
+              </span>
+              <span className="block truncate text-[11px] leading-tight text-ink-faint">
+                {member.name}
+              </span>
             </span>
           </Link>
 
-          {/* Bottom nav on phones, inline on wider screens. */}
-          <nav className="hidden gap-1 sm:flex">
-            <NavLink href="/home">Today</NavLink>
-            <NavLink href="/home/balance">Balance</NavLink>
-            <NavLink href="/home/chores">Chores</NavLink>
-            <NavLink href="/home/settings">Home</NavLink>
+          <nav className="hidden items-center gap-0.5 sm:flex">
+            {NAV.map((item) => (
+              <NavLink key={item.href} href={item.href} icon={item.icon}>
+                {item.label}
+              </NavLink>
+            ))}
           </nav>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-28 pt-6 sm:pb-12">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-28 pt-8 sm:pb-16">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden">
-        <div className="mx-auto flex max-w-2xl">
-          <NavLink href="/home" stacked icon="📋">
-            Today
-          </NavLink>
-          <NavLink href="/home/balance" stacked icon="⚖️">
-            Balance
-          </NavLink>
-          <NavLink href="/home/chores" stacked icon="🧹">
-            Chores
-          </NavLink>
-          <NavLink href="/home/settings" stacked icon="🏠">
-            Home
-          </NavLink>
+      {/* Bottom bar on phones — the thumb lives down here. */}
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden">
+        <div className="mx-auto flex max-w-3xl">
+          {NAV.map((item) => (
+            <NavLink key={item.href} href={item.href} icon={item.icon} stacked>
+              {item.label}
+            </NavLink>
+          ))}
         </div>
       </nav>
     </div>

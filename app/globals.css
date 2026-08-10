@@ -1,84 +1,183 @@
 @import 'tailwindcss';
 
 /**
- * Warm, quiet, domestic.
+ * chorely's visual identity.
  *
- * This app lives in the middle of a household's small frictions, so it should
- * feel like paper on a fridge rather than a project tracker. Warm neutrals over
- * clinical greys; one green for done, one amber for late, and nothing red.
- * Nothing here should ever feel like an accusation.
+ * The brief is domestic, not corporate. This app sits between people who live
+ * together, so it should feel like a well-made object in a home rather than a
+ * productivity dashboard — closer to a letterpress noticeboard than a console.
+ *
+ * Three decisions carry that:
+ *
+ * 1. Warm neutrals on a bone ground. Never pure white on pure grey.
+ * 2. One muted pine green, mixed by hand rather than lifted from a framework
+ *    palette. Default framework colours are the fastest way to look like every
+ *    other app built this year.
+ * 3. Hairline rules instead of drop shadows. Shadows imply floating cards;
+ *    rules imply print, and this should feel printed.
  */
+
 :root {
-  --paper: #faf8f5;
+  /* Ground */
+  --paper: #fcfbf8;
   --surface: #ffffff;
-  --surface-sunk: #f3f0eb;
-  --ink: #1c1917;
-  --ink-muted: #78716c;
-  --line: #e7e3dd;
-  --accent: #15803d;
-  --accent-soft: #dcfce7;
-  --accent-ink: #14532d;
-  --late: #b45309;
-  --late-soft: #fef3c7;
-  --shadow: 0 1px 2px rgb(28 25 23 / 0.06), 0 4px 12px rgb(28 25 23 / 0.04);
+  --sunk: #f4f1ea;
+
+  /* Ink */
+  --ink: #1a1917;
+  --ink-muted: #6b6660;
+  --ink-faint: #9c968c;
+
+  /* Structure */
+  --line: #e6e1d6;
+  --line-strong: #d2ccbe;
+
+  /* Brand — desaturated pine, so it reads considered rather than cheerful */
+  --brand: #2c5548;
+  --brand-hover: #23453a;
+  --brand-soft: #e5efe9;
+  --brand-ink: #1d3b31;
+  --on-brand: #fcfbf8;
+
+  /* Late — ochre, never red. Nothing here should alarm anyone. */
+  --late: #8f6425;
+  --late-soft: #f8f0dd;
+
+  --focus: #2c5548;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #0c0a09;
-    --surface: #1c1917;
-    --surface-sunk: #262322;
-    --ink: #fafaf9;
-    --ink-muted: #a8a29e;
-    --line: #2d2a28;
-    --accent: #4ade80;
-    --accent-soft: #14312099;
-    --accent-ink: #86efac;
-    --late: #fbbf24;
-    --late-soft: #422b0699;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.2);
+    --paper: #0f0f0e;
+    --surface: #191918;
+    --sunk: #211f1e;
+
+    --ink: #f4f2ed;
+    --ink-muted: #9d968b;
+    --ink-faint: #6d675e;
+
+    --line: #2a2926;
+    --line-strong: #3a3834;
+
+    /* The pine inverts to a soft eucalyptus to stay legible on dark ground */
+    --brand: #7fc5ac;
+    --brand-hover: #96d3bd;
+    --brand-soft: #172e27;
+    --brand-ink: #a9dcc8;
+    --on-brand: #0f1f1a;
+
+    --late: #d9a65c;
+    --late-soft: #2b2214;
+
+    --focus: #7fc5ac;
   }
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
-  --color-surface-sunk: var(--surface-sunk);
+  --color-sunk: var(--sunk);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ink: var(--accent-ink);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
   --color-late: var(--late);
   --color-late-soft: var(--late-soft);
+
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-instrument-serif);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  /* Stops the page shifting sideways when a scrollbar appears mid-navigation. */
+  scrollbar-gutter: stable;
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Respect the system setting rather than animating over someone's preference. */
+/**
+ * Display type.
+ *
+ * A serif for headline moments only — the balance score, page titles, empty
+ * states. Used sparingly it gives the app a voice; used everywhere it would
+ * read as a recipe blog.
+ */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
+/** Numbers sitting in a column must not dance as they change. */
+@utility numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/**
+ * The panel: a hairline-ruled surface.
+ *
+ * No shadow. Elevation is expressed through the rule and the ground colour,
+ * which keeps the interface flat and printed rather than floating.
+ */
+@utility panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+/** Generous targets: used one-handed, in a kitchen, often in a hurry. */
+@utility tap {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+/** Small caps label, for section headers and table columns. */
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* One consistent focus treatment, rather than each control inventing its own. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Keyboard users get the ring; a mouse click stays quiet. */
+:where(button, a):focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-@utility card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
-}
-
-/* Generous hit targets: this gets used one-handed, in a kitchen, in a hurry. */
-@utility tap {
-  min-height: 2.75rem;
-  touch-action: manipulation;
 }

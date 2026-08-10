@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 
 /**
  * The invite link, with a copy button.
  *
  * This link *is* the access control: anyone holding it can join the household.
  * That is stated plainly next to it rather than buried, because it is the one
- * security property a user needs to understand.
+ * security property a user actually needs to understand.
  */
 export function InviteLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
@@ -19,33 +20,38 @@ export function InviteLink({ url }: { url: string }) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard access can be refused (insecure origin, permissions). The
-      // link is selectable on screen, so this is a lost convenience, not a
-      // lost capability — no error dialog required.
+      // link is selectable on screen, so this is a lost convenience rather than
+      // a lost capability — no error dialog warranted.
       setCopied(false);
     }
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex gap-2">
         <input
           readOnly
           value={url}
           onFocus={(event) => event.currentTarget.select()}
           aria-label="Invite link"
-          className="tap min-w-0 flex-1 rounded-xl border border-line bg-surface-sunk px-4 text-sm outline-none focus:ring-2 focus:ring-accent"
+          className="tap min-w-0 flex-1 rounded-xl border border-line bg-sunk px-3.5 font-mono text-[13px] text-ink-muted outline-none"
         />
         <button
           type="button"
           onClick={copy}
-          className="tap shrink-0 cursor-pointer rounded-xl bg-accent px-4 text-sm font-medium text-white transition hover:opacity-90 dark:text-stone-950"
+          className="tap inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-brand px-4 text-sm font-medium text-on-brand transition-colors hover:bg-brand-hover"
         >
+          {copied ? (
+            <Check size={15} strokeWidth={2.2} aria-hidden />
+          ) : (
+            <Copy size={15} strokeWidth={1.9} aria-hidden />
+          )}
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <p className="text-xs text-ink-muted">
+      <p className="text-xs leading-relaxed text-ink-faint">
         Anyone with this link can join your home and see its chores. Share it the way you&rsquo;d
-        share a house key.
+        share a key.
       </p>
     </div>
   );

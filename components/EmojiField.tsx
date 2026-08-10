@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { legendClass } from '@/components/formStyles';
+
 interface EmojiFieldProps {
   name: string;
   options: readonly string[];
@@ -12,7 +14,7 @@ interface EmojiFieldProps {
 /**
  * Pick an avatar or icon from a short list.
  *
- * A fixed list rather than a full emoji keyboard, and no image upload at all:
+ * A fixed set rather than a full emoji keyboard, and no image upload at all:
  * onboarding has to survive five housemates doing it on a phone in a kitchen,
  * and "choose and crop a profile photo" is where that stops happening.
  */
@@ -21,7 +23,7 @@ export function EmojiField({ name, options, defaultValue, label }: EmojiFieldPro
 
   return (
     <fieldset>
-      <legend className="mb-2 text-sm font-medium text-ink-muted">{label}</legend>
+      <legend className={legendClass}>{label}</legend>
       <input type="hidden" name={name} value={selected} />
       <div className="flex flex-wrap gap-1.5">
         {options.map((option) => {
@@ -33,10 +35,10 @@ export function EmojiField({ name, options, defaultValue, label }: EmojiFieldPro
               onClick={() => setSelected(option)}
               aria-pressed={isSelected}
               aria-label={option}
-              className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-xl transition ${
+              className={`grid size-10 cursor-pointer place-items-center rounded-xl text-lg leading-none transition-colors ${
                 isSelected
-                  ? 'bg-accent-soft ring-2 ring-accent'
-                  : 'bg-surface-sunk hover:brightness-95'
+                  ? 'bg-brand-soft ring-1 ring-brand/40'
+                  : 'bg-sunk hover:bg-line/60'
               }`}
             >
               {option}

@@ -31,8 +31,9 @@ export default async function ChoresPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Chores</h1>
-        <p className="mt-1 text-sm text-ink-muted">
+        <p className="eyebrow mb-2">Set up</p>
+        <h1 className="display text-4xl sm:text-5xl">Chores</h1>
+        <p className="mt-3 text-[15px] text-ink-muted">
           {chores.length === 0
             ? 'Nothing set up yet.'
             : `${chores.length} on the go in ${household.name}.`}
@@ -42,15 +43,15 @@ export default async function ChoresPage() {
       <NewChoreForm members={members} />
 
       {chores.length > 0 && (
-        <ul className="card divide-y divide-line">
+        <ul className="panel px-4">
           {chores.map((chore) => (
-            <li key={chore.id} className="flex items-center gap-3 px-4 py-3">
-              <span aria-hidden className="text-xl">
+            <li key={chore.id} className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+              <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-xl bg-sunk text-[19px] leading-none">
                 {chore.icon}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{chore.name}</p>
-                <p className="truncate text-xs text-ink-muted">
+                <p className="truncate text-[15px] leading-snug">{chore.name}</p>
+                <p className="mt-0.5 truncate text-xs text-ink-faint">
                   {describeRecurrence(chore.recurrence)} · {chore.effort}{' '}
                   {chore.effort === 1 ? 'point' : 'points'} ·{' '}
                   {chore.rotationMode === 'fixed'
@@ -60,7 +61,7 @@ export default async function ChoresPage() {
               </div>
               <form action={archiveChoreAction}>
                 <input type="hidden" name="choreId" value={chore.id} />
-                <SubmitButton variant="quiet" className="px-3" title="Retire this chore">
+                <SubmitButton variant="quiet" size="sm" title="Retire this chore">
                   Remove
                 </SubmitButton>
               </form>
@@ -69,7 +70,7 @@ export default async function ChoresPage() {
         </ul>
       )}
 
-      <p className="text-xs text-ink-muted">
+      <p className="max-w-md text-xs text-pretty text-ink-faint">
         Removing a chore stops it coming back, but keeps the work already done in the balance —
         deleting it outright would quietly rewrite who&rsquo;d been pulling their weight.
       </p>

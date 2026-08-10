@@ -1,35 +1,52 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
+import { Loader2 } from 'lucide-react';
 
 interface SubmitButtonProps {
-  children: React.ReactNode;
-  pendingLabel?: string;
+  children: ReactNode;
   className?: string;
-  variant?: 'primary' | 'quiet' | 'done';
+  variant?: 'primary' | 'quiet' | 'affirm';
+  size?: 'md' | 'sm';
+  /**
+   * A rendered icon element, not an icon component.
+   *
+   * Server Components render these and hand the element across the boundary;
+   * a component function could not cross it, because React cannot serialise a
+   * function.
+   */
+  icon?: ReactNode;
   title?: string;
+  /** Screen-reader label, for buttons whose visible text is only an icon. */
+  label?: string;
 }
 
 const VARIANTS = {
-  primary:
-    'bg-accent text-white dark:text-stone-950 hover:opacity-90 disabled:opacity-60 font-medium',
-  quiet:
-    'bg-surface-sunk text-ink-muted hover:text-ink border border-line disabled:opacity-60',
-  done: 'bg-accent-soft text-accent-ink hover:brightness-95 disabled:opacity-60 font-medium',
+  primary: 'bg-brand text-on-brand hover:bg-brand-hover font-medium',
+  quiet: 'border border-line text-ink-muted hover:border-line-strong hover:text-ink',
+  affirm: 'border border-transparent bg-brand-soft text-brand-ink font-medium hover:border-brand/25',
+} as const;
+
+const SIZES = {
+  md: 'tap px-4 text-sm',
+  sm: 'h-9 px-3 text-[13px]',
 } as const;
 
 /**
  * A submit button that disables itself while its form is in flight.
  *
- * Not decoration: the primary interaction is "tap done", and a double-tap on a
- * slow phone connection is the single most likely way to double-post.
+ * Not decoration. The primary interaction in this app is "tap Done", and a
+ * double-tap on a slow phone connection is the likeliest way to double-post.
  */
 export function SubmitButton({
   children,
-  pendingLabel,
   className = '',
   variant = 'primary',
+  size = 'md',
+  icon,
   title,
+  label,
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
 
@@ -38,10 +55,16 @@ export function SubmitButton({
       type="submit"
       disabled={pending}
       title={title}
+      aria-label={label}
       aria-busy={pending}
-      className={`tap inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-sm transition disabled:cursor-wait ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex cursor-pointer select-none items-center justify-center gap-1.5 rounded-full transition-colors disabled:cursor-wait disabled:opacity-55 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
     >
-      {pending && pendingLabel ? pendingLabel : children}
+      {pending ? (
+        <Loader2 size={15} strokeWidth={2} aria-hidden className="animate-spin" />
+      ) : (
+        icon
+      )}
+      {children}
     </button>
   );
 }
