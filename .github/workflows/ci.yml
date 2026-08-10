@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push to a PR should cancel the first run rather than queue behind it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npx eslint .
+
+      # `npm run typecheck` runs `next typegen` first. Next generates the
+      # `PageProps`/`LayoutProps` globals into .next/types, which is gitignored,
+      # so a bare `tsc` on a fresh clone fails on types that exist on every
+      # developer machine that has run a build.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The self-hosted path is the primary way people will run this, so a
+      # broken Dockerfile is a broken release even when the app itself is fine.
+      - name: Build image
+        run: docker build -t chorely:ci .
+
+      - name: Boot it and check it serves
+        run: |
+          docker run -d --name chorely-ci -p 3000:3000 chorely:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/ > /dev/null; then
+              echo "Serving after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Never became healthy. Container logs:"
+          docker logs chorely-ci
+          exit 1
