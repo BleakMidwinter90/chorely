@@ -2,9 +2,12 @@
 
 import { useActionState, useState } from 'react';
 
+import { Plus } from 'lucide-react';
+
 import { createChoreAction, type ActionState } from '@/app/actions';
-import { FormError } from '@/components/FormError';
 import { CHORE_EMOJI, EmojiField } from '@/components/EmojiField';
+import { FormError } from '@/components/FormError';
+import { fieldClass as inputClass, labelClass, legendClass } from '@/components/formStyles';
 import { SubmitButton } from '@/components/SubmitButton';
 import type { Member } from '@/lib/db/schema';
 
@@ -20,8 +23,6 @@ const WEEKDAYS = [
 
 const EFFORT_LABELS = ['', 'A minute', 'Quick', 'Some work', 'A real job', 'The worst one'];
 
-const inputClass =
-  'tap w-full rounded-xl border border-line bg-surface-sunk px-4 text-base outline-none focus:ring-2 focus:ring-accent';
 
 /**
  * Adding a chore.
@@ -43,18 +44,19 @@ export function NewChoreForm({ members }: { members: Member[] }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="tap w-full cursor-pointer rounded-xl border border-dashed border-line bg-surface px-4 text-sm font-medium text-ink-muted transition hover:text-ink"
+        className="tap flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-dashed border-line-strong bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:border-brand/40 hover:text-ink"
       >
-        + Add a chore
+        <Plus size={16} strokeWidth={2} aria-hidden />
+        Add a chore
       </button>
     );
   }
 
   return (
-    <form action={formAction} className="card space-y-5 p-5">
+    <form action={formAction} className="panel space-y-6 p-5 sm:p-6">
       <FormError message={state.error} />
       <div>
-        <label htmlFor="name" className="mb-2 block text-sm font-medium text-ink-muted">
+        <label htmlFor="name" className={labelClass}>
           What needs doing?
         </label>
         <input
@@ -72,7 +74,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
       <EmojiField name="icon" label="Icon" options={CHORE_EMOJI} />
 
       <div>
-        <label htmlFor="effort" className="mb-2 block text-sm font-medium text-ink-muted">
+        <label htmlFor="effort" className={labelClass}>
           How big a job is it?{' '}
           <span className="font-normal text-ink">{EFFORT_LABELS[effort]}</span>
         </label>
@@ -85,7 +87,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
           step={1}
           value={effort}
           onChange={(event) => setEffort(Number(event.target.value))}
-          className="w-full accent-[var(--accent)]"
+          className="w-full [var(--brand)]"
         />
         <p className="mt-1 text-xs text-ink-muted">
           Bigger jobs count for more when working out who&rsquo;s pulling their weight.
@@ -93,7 +95,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
       </div>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium text-ink-muted">How often?</legend>
+        <legend className={legendClass}>How often?</legend>
         <select
           name="repeat"
           value={repeat}
@@ -116,7 +118,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
                 min={1}
                 max={365}
                 defaultValue={7}
-                className="tap w-24 rounded-xl border border-line bg-surface-sunk px-3 text-center text-base outline-none focus:ring-2 focus:ring-accent"
+                className="tap w-20 rounded-xl border border-line bg-sunk px-3 text-center text-[15px] outline-none transition-colors focus:border-brand/40 focus:bg-surface"
               />
               <span className="text-sm text-ink-muted">days</span>
             </div>
@@ -125,7 +127,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
                 name="flexible"
                 type="checkbox"
                 defaultChecked
-                className="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+                className="mt-0.5 h-4 w-4 [var(--brand)]"
               />
               <span>
                 Count from when it was last done
@@ -144,7 +146,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
             {WEEKDAYS.map((day) => (
               <label
                 key={day.value}
-                className="tap flex cursor-pointer items-center rounded-xl border border-line bg-surface-sunk px-3 text-sm has-checked:border-accent has-checked:bg-accent-soft has-checked:text-accent-ink"
+                className="tap flex cursor-pointer items-center rounded-xl border border-line bg-sunk px-3.5 text-sm transition-colors has-checked:border-brand/40 has-checked:bg-brand-soft has-checked:text-brand-ink"
               >
                 <input
                   type="checkbox"
@@ -168,7 +170,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
               min={1}
               max={31}
               defaultValue={1}
-              className="tap w-24 rounded-xl border border-line bg-surface-sunk px-3 text-center text-base outline-none focus:ring-2 focus:ring-accent"
+              className="tap w-20 rounded-xl border border-line bg-sunk px-3 text-center text-[15px] outline-none transition-colors focus:border-brand/40 focus:bg-surface"
             />
             <span className="text-sm text-ink-muted">of the month</span>
           </div>
@@ -176,7 +178,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
       </fieldset>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-medium text-ink-muted">Whose job is it?</legend>
+        <legend className={legendClass}>Whose job is it?</legend>
         <select
           name="rotationMode"
           value={rotationMode}
@@ -201,13 +203,13 @@ export function NewChoreForm({ members }: { members: Member[] }) {
       </fieldset>
 
       <div className="flex gap-2">
-        <SubmitButton className="flex-1" pendingLabel="Adding…">
+        <SubmitButton className="flex-1">
           Add chore
         </SubmitButton>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="tap cursor-pointer rounded-xl border border-line px-4 text-sm text-ink-muted transition hover:text-ink"
+          className="tap cursor-pointer rounded-full border border-line px-4 text-sm text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
         >
           Cancel
         </button>

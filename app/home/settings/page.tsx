@@ -31,29 +31,30 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{household.name}</h1>
-        <p className="mt-1 text-sm text-ink-muted">
+        <p className="eyebrow mb-2">Your home</p>
+        <h1 className="display text-4xl sm:text-5xl">{household.name}</h1>
+        <p className="mt-3 text-[15px] text-ink-muted">
           {members.length} {members.length === 1 ? 'person' : 'people'} · {household.timezone}
         </p>
       </header>
 
-      <section className="card space-y-3 p-5">
-        <h2 className="font-medium">Invite the people you live with</h2>
+      <section className="panel space-y-3 p-5">
+        <h2 className="text-[15px] font-medium">Invite the people you live with</h2>
         <InviteLink url={inviteUrl} />
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-medium">Shares</h2>
+        <h2 className="eyebrow">Shares</h2>
         <p className="text-sm text-ink-muted">
           A fair split isn&rsquo;t always an equal one. If someone works nights, travels, or the
           house has simply agreed they do less, set it here and the balance will expect that
           instead.
         </p>
 
-        <ul className="card divide-y divide-line">
+        <ul className="panel px-4">
           {members.map((member) => (
-            <li key={member.id} className="flex items-center gap-3 px-4 py-3">
-              <span aria-hidden className="text-xl">
+            <li key={member.id} className="flex flex-wrap items-center gap-3 border-b border-line py-3 last:border-b-0">
+              <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-sunk text-base leading-none">
                 {member.emoji}
               </span>
               <span className="min-w-0 flex-1 truncate">
@@ -71,7 +72,7 @@ export default async function SettingsPage() {
                   id={`weight-${member.id}`}
                   name="weight"
                   defaultValue={member.weight}
-                  className="tap rounded-xl border border-line bg-surface-sunk px-3 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  className="tap rounded-xl border border-line bg-sunk px-3 text-sm outline-none focus:ring-2 focus:ring-brand"
                 >
                   {SHARE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -79,7 +80,7 @@ export default async function SettingsPage() {
                     </option>
                   ))}
                 </select>
-                <SubmitButton variant="quiet" className="px-3">
+                <SubmitButton variant="quiet" size="sm">
                   Save
                 </SubmitButton>
               </form>
@@ -89,9 +90,9 @@ export default async function SettingsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-medium">This device</h2>
+        <h2 className="eyebrow">This device</h2>
         <form action={signOutAction}>
-          <SubmitButton variant="quiet">Sign out of {household.name}</SubmitButton>
+          <SubmitButton variant="quiet" size="sm">Sign out of {household.name}</SubmitButton>
         </form>
         <p className="text-xs text-ink-muted">
           Signing out only affects this device. Your name and everything you&rsquo;ve done stay in

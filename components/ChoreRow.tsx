@@ -1,3 +1,5 @@
+import { Check, X } from 'lucide-react';
+
 import { completeChoreAction, skipChoreAction } from '@/app/actions';
 import { SubmitButton } from '@/components/SubmitButton';
 import { daysOverdue } from '@/lib/domain/recurrence';
@@ -7,15 +9,14 @@ import type { AgendaItem } from '@/lib/services/households';
 /**
  * How late something is, said the way a person would say it.
  *
- * Deliberately gentle. "3 days late" is information; "OVERDUE" in red is a
+ * Deliberately gentle. "3 days ago" is information; "OVERDUE" in red is a
  * telling-off, and an app that nags gets deleted.
  */
 function whenLabel(item: AgendaItem, today: IsoDate): string {
   if (item.status === 'today') return 'Today';
   if (item.status === 'upcoming') {
     const days = daysOverdue(today, item.occurrence.dueOn);
-    if (days === 1) return 'Tomorrow';
-    return `In ${days} days`;
+    return days === 1 ? 'Tomorrow' : `In ${days} days`;
   }
   const late = daysOverdue(item.occurrence.dueOn, today);
   if (late === 1) return 'Yesterday';
@@ -36,19 +37,24 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
   const isLate = item.status === 'overdue';
 
   return (
-    <li className="card flex items-center gap-3 p-3">
-      <span aria-hidden className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface-sunk text-xl">
+    <li className="group flex items-center gap-3 border-b border-line px-1 py-3 last:border-b-0">
+      <span
+        aria-hidden
+        className="grid size-10 shrink-0 place-items-center rounded-xl bg-sunk text-[19px] leading-none"
+      >
         {item.chore.icon}
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{item.chore.name}</p>
-        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
+        <p className="truncate text-[15px] leading-snug">{item.chore.name}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs leading-snug text-ink-faint">
           <span className={isLate ? 'font-medium text-late' : undefined}>
             {whenLabel(item, today)}
           </span>
-          <span aria-hidden>·</span>
-          <span>
+          <span aria-hidden className="text-line-strong">
+            /
+          </span>
+          <span className="truncate">
             {item.assignee
               ? isMine
                 ? 'Your turn'
@@ -58,19 +64,34 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
         </p>
       </div>
 
-      <form action={skipChoreAction}>
-        <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
-        <SubmitButton variant="quiet" className="px-3" title="Skip this one — nobody gets credit">
-          Skip
-        </SubmitButton>
-      </form>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <form action={skipChoreAction}>
+          <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
+          <SubmitButton
+            variant="quiet"
+            size="sm"
+            icon={<X size={15} strokeWidth={1.9} aria-hidden />}
+            label={`Skip ${item.chore.name}`}
+            title="Skip this one — nobody gets the credit"
+            className="!px-2.5"
+          >
+            <span className="sr-only sm:not-sr-only">Skip</span>
+          </SubmitButton>
+        </form>
 
-      <form action={completeChoreAction}>
-        <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
-        <SubmitButton variant="done" pendingLabel="…" title="I did this">
-          Done
-        </SubmitButton>
-      </form>
+        <form action={completeChoreAction}>
+          <input type="hidden" name="occurrenceId" value={item.occurrence.id} />
+          <SubmitButton
+            variant="affirm"
+            size="sm"
+            icon={<Check size={15} strokeWidth={2.1} aria-hidden />}
+            label={`Mark ${item.chore.name} done`}
+            title="I did this"
+          >
+            Done
+          </SubmitButton>
+        </form>
+      </div>
     </li>
   );
 }
