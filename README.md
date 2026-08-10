@@ -116,6 +116,40 @@ Session cookies contain a random token; only its SHA-256 hash is stored, so a le
 
 If you expose chorely to the public internet, put it behind HTTPS.
 
+## Reminders
+
+Each person can ask for one notification a day, at an hour they choose, and
+only when something is actually on their list. Turn it on under **Home →
+Reminders**.
+
+Some deliberate limits:
+
+- **At most one a day, per person.** An app that sends two notifications about
+  the same bin gets its notifications switched off, and then it may as well not
+  have them.
+- **Never about an empty list.** No "well done, nothing to do".
+- **It states the fact and stops.** No exclamation marks, no counting how many
+  days something has slipped. There is a test asserting the wording never
+  scolds.
+
+chorely runs its own timer, so there is nothing to schedule. VAPID keys are
+generated on first use and stored with your data — no key-generation command to
+run before notifications work.
+
+If you run several replicas, disable the in-process timer with
+`CHORELY_DISABLE_SCHEDULER=1` and drive it yourself instead:
+
+```bash
+curl -X POST https://your-instance/api/cron/reminders
+```
+
+That endpoint is safe to call as often as you like — the once-a-day rule means
+extra calls do nothing. Set `CRON_SECRET` to require a bearer token.
+
+Notifications require HTTPS, since browsers only allow service workers in a
+secure context. On a home network over plain HTTP everything else works; you
+just don't get reminders.
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -124,6 +158,10 @@ If you expose chorely to the public internet, put it behind HTTPS.
 | `DATABASE_AUTH_TOKEN` | — | Turso auth token; ignored for local files |
 | `PORT` | `3000` | Port to listen on |
 | `COOKIE_SECURE` | auto | Force the session cookie's `Secure` flag on (`1`) or off (`0`) |
+| `CHORELY_DISABLE_SCHEDULER` | — | Set to `1` to turn off the built-in reminder timer |
+| `CRON_SECRET` | — | Require this bearer token on `/api/cron/reminders` |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | auto | Bring your own push keys instead of generated ones |
+| `VAPID_SUBJECT` | `mailto:chorely@localhost` | Contact address sent to push services |
 
 By default the `Secure` flag follows the actual protocol of the request, read from `x-forwarded-proto`. That means it works out of the box both on a home network over plain HTTP and behind an HTTPS reverse proxy. Set `COOKIE_SECURE=1` only if your proxy terminates TLS without setting that header.
 

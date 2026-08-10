@@ -8,6 +8,13 @@
       "when": 1786319809441,
       "tag": "0000_dusty_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786325087797,
+      "tag": "0001_lying_scorpion",
+      "breakpoints": true
     }
   ]
 }
