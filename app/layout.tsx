@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 
+import { ServiceWorker } from '@/components/ServiceWorker';
 import './globals.css';
 
 const sans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -30,6 +31,14 @@ export const metadata: Metadata = {
   applicationName: 'chorely',
   appleWebApp: { capable: true, title: 'chorely', statusBarStyle: 'default' },
   formatDetection: { telephone: false },
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [
+      { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+  },
 };
 
 export const viewport: Viewport = {
@@ -49,7 +58,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="en"
       className={`${sans.variable} ${mono.variable} ${display.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   );
 }

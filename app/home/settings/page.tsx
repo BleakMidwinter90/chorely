@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { signOutAction, updateMemberWeightAction } from '@/app/actions';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { InviteLink } from '@/components/InviteLink';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
@@ -37,6 +38,8 @@ export default async function SettingsPage() {
           {members.length} {members.length === 1 ? 'person' : 'people'} · {household.timezone}
         </p>
       </header>
+
+      <InstallPrompt />
 
       <section className="panel space-y-3 p-5">
         <h2 className="text-[15px] font-medium">Invite the people you live with</h2>
