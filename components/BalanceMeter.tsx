@@ -7,6 +7,12 @@ interface BalanceMeterProps {
 }
 
 /**
+ * A fixed, colourblind-safe sequence, assigned by join order so a person's
+ * colour never changes underneath them.
+ */
+const PALETTE = ['#0ea5e9', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899', '#64748b'];
+
+/**
  * Who did what, as a single proportional bar.
  *
  * A stacked bar rather than a leaderboard, deliberately. A ranked list invites
@@ -16,13 +22,12 @@ interface BalanceMeterProps {
 export function BalanceMeter({ report, members }: BalanceMeterProps) {
   const byId = new Map(members.map((member) => [member.id, member]));
 
-  // A fixed, colourblind-safe sequence. Assigned by join order so a person's
-  // colour never changes underneath them.
-  const palette = ['#0ea5e9', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899', '#64748b'];
-  const colorFor = (memberId: string) => {
-    const index = members.findIndex((member) => member.id === memberId);
-    return palette[(index < 0 ? 0 : index) % palette.length];
-  };
+  // Resolved once into a lookup rather than scanning the roster per member,
+  // which this did twice over for every render.
+  const colorById = new Map(
+    members.map((member, index) => [member.id, PALETTE[index % PALETTE.length]]),
+  );
+  const colorFor = (memberId: string) => colorById.get(memberId) ?? PALETTE[0];
 
   const ordered = [...report.members].sort((a, b) => b.points - a.points);
 
