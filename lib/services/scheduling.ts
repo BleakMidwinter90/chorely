@@ -11,11 +11,22 @@ import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 
 import { getDb, type Database } from '../db/client';
 import { chores, members, occurrences, type Chore, type Household } from '../db/schema';
+import { isAwayOn, type AwayPeriod } from '../domain/away';
 import { addDays, todayInTimezone } from '../domain/date';
 import { nextDueDate } from '../domain/recurrence';
 import { pickAssignee, type RotationCandidate } from '../domain/rotation';
 import type { IsoDate } from '../domain/types';
 import { createId } from '../ids';
+
+/** Null unless both ends are set — a half-filled period means nothing. */
+export function toAwayPeriod(member: {
+  awayFrom: string | null;
+  awayUntil: string | null;
+}): AwayPeriod | null {
+  return member.awayFrom && member.awayUntil
+    ? { from: member.awayFrom, until: member.awayUntil }
+    : null;
+}
 
 /** "Today" as the household experiences it, not as the server does. */
 export function householdToday(household: Household, now = new Date()): IsoDate {
@@ -34,12 +45,26 @@ async function loadCandidates(
   db: Database,
   householdId: string,
   windowStart: IsoDate,
+  windowEnd: IsoDate,
 ): Promise<Map<string, Omit<RotationCandidate, 'lastDidChoreOn'>>> {
-  const active = await db
-    .select({ id: members.id, weight: members.weight })
+  const roster = await db
+    .select({
+      id: members.id,
+      weight: members.weight,
+      awayFrom: members.awayFrom,
+      awayUntil: members.awayUntil,
+    })
     .from(members)
     .where(and(eq(members.householdId, householdId), isNull(members.archivedAt)))
     .orderBy(members.sortOrder, members.id);
+
+  // Somebody on holiday should not come home to a fortnight of chores with
+  // their name on. If everyone is away, fall back to the whole roster rather
+  // than leaving the household with nothing assigned to anybody.
+  const present = roster.filter(
+    (member) => !isAwayOn(toAwayPeriod(member), windowEnd),
+  );
+  const active = present.length > 0 ? present : roster;
 
   const recent = await db
     .select({
@@ -169,7 +194,7 @@ export async function ensureOpenOccurrences(
 
   const { start } = fairnessWindow(household, today);
   const [candidates, state, history] = await Promise.all([
-    loadCandidates(db, household.id, start),
+    loadCandidates(db, household.id, start, today),
     loadChoreState(db, pending.map((c) => c.id)),
     loadChoreHistory(db, pending.map((c) => c.id)),
   ]);

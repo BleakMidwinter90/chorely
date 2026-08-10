@@ -116,6 +116,17 @@ Session cookies contain a random token; only its SHA-256 hash is stored, so a le
 
 If you expose chorely to the public internet, put it behind HTTPS.
 
+## Going away
+
+Tell chorely you're away for a weekend, a week, a fortnight or a month, and two
+things happen. Your chores get handed to whoever is around — and your **expected
+share shrinks in proportion to the days you were gone**.
+
+That second half is the one that matters. Pausing assignment alone would leave
+you coming home from a fortnight away to an app announcing you were behind,
+which would be both false and exactly the accusation this project exists not to
+make.
+
 ## The shared shopping list
 
 Chores and groceries are the two things every shared household actually

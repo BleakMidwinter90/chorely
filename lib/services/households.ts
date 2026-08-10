@@ -187,6 +187,8 @@ export interface CreateChoreInput {
   recurrence: Recurrence;
   rotationMode: RotationMode;
   fixedMemberId?: string;
+  /** Practical knowledge to carry over, e.g. from a template. */
+  notes?: string;
 }
 
 export async function createChore(
@@ -206,6 +208,7 @@ export async function createChore(
       recurrence: input.recurrence,
       rotationMode: input.rotationMode,
       fixedMemberId: input.rotationMode === 'fixed' ? input.fixedMemberId : null,
+      notes: input.notes ?? null,
       startOn: today,
     })
     .returning();

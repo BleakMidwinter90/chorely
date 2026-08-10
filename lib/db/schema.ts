@@ -51,6 +51,15 @@ export const members = sqliteTable(
     weight: real('weight').notNull().default(1),
     /** Join order. Also the visiting order for `rotate` chores. */
     sortOrder: integer('sort_order').notNull().default(0),
+    /**
+     * Away period, `YYYY-MM-DD` inclusive at both ends.
+     *
+     * While away, someone is skipped by assignment *and* has their expected
+     * share scaled down in proportion. Pausing only the assignment would leave
+     * them coming home to an app claiming they are behind.
+     */
+    awayFrom: text('away_from'),
+    awayUntil: text('away_until'),
     /** Whether this person wants a daily reminder at all. Off means off. */
     remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
     /**
