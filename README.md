@@ -37,6 +37,20 @@ So chorely's central feature isn't a checklist. It's a **balance score**: one nu
 
 **Never becomes a weapon.** There's no leaderboard, nothing red, and no nagging. Late chores say "3 days ago", not **OVERDUE**. The balance summary names an imbalance without naming a villain — there's a test that asserts it.
 
+## Install it like an app
+
+chorely is a progressive web app. Open it on a phone and add it to the home
+screen — it launches without a browser bar, keeps working when the signal
+drops, and can send reminders.
+
+- **Android / Chrome** — an install banner appears on the Home screen inside
+  the app.
+- **iPhone / Safari** — tap Share, then Add to Home Screen.
+
+Installing requires HTTPS, which browsers insist on for service workers. Over
+plain HTTP on a home network everything still works; you just don't get the
+offline shell.
+
 ## Getting started
 
 ### Docker (recommended)
