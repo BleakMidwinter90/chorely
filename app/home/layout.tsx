@@ -7,6 +7,7 @@ import { getIdentity } from '@/lib/auth/session';
 // boundary, so NavLink resolves these on its own side.
 const NAV: Array<{ href: string; label: string; icon: NavIcon }> = [
   { href: '/home', label: 'Today', icon: 'today' },
+  { href: '/home/shopping', label: 'Shopping', icon: 'shopping' },
   { href: '/home/balance', label: 'Balance', icon: 'balance' },
   { href: '/home/chores', label: 'Chores', icon: 'chores' },
   { href: '/home/settings', label: 'Home', icon: 'home' },

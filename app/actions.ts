@@ -26,6 +26,12 @@ import {
   reassignOpenOccurrences,
 } from '@/lib/services/households';
 import { completeOccurrence, householdToday, skipOccurrence } from '@/lib/services/scheduling';
+import {
+  addShoppingItem,
+  clearBoughtItems,
+  removeShoppingItem,
+  setItemBought,
+} from '@/lib/services/shopping';
 
 const nameSchema = z.string().trim().min(1, 'Please enter a name').max(60);
 const emojiSchema = z.string().trim().min(1).max(8).default('🙂');
@@ -291,6 +297,52 @@ export async function updateReminderPrefsAction(formData: FormData): Promise<voi
     .where(eq(members.id, member.id));
 
   revalidatePath('/home/settings');
+}
+
+/* ---------------------------------------------------------------- shopping */
+
+export async function addShoppingItemAction(formData: FormData): Promise<void> {
+  const { household, member } = await requireIdentity();
+
+  const parsed = z
+    .object({ name: z.string().trim().min(1).max(80), note: z.string().trim().max(120).optional() })
+    .safeParse({
+      name: formData.get('name'),
+      note: formData.get('note') || undefined,
+    });
+
+  // An empty submit is someone hitting enter on a blank field, not an error
+  // worth interrupting them for.
+  if (!parsed.success) return;
+
+  await addShoppingItem(household, { ...parsed.data, addedById: member.id });
+  revalidatePath('/home/shopping');
+}
+
+export async function toggleShoppingItemAction(formData: FormData): Promise<void> {
+  const { household, member } = await requireIdentity();
+
+  const itemId = String(formData.get('itemId') ?? '');
+  if (!itemId) return;
+
+  await setItemBought(household, itemId, formData.get('bought') === '1', member.id);
+  revalidatePath('/home/shopping');
+}
+
+export async function removeShoppingItemAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+
+  const itemId = String(formData.get('itemId') ?? '');
+  if (!itemId) return;
+
+  await removeShoppingItem(household, itemId);
+  revalidatePath('/home/shopping');
+}
+
+export async function clearBoughtItemsAction(): Promise<void> {
+  const { household } = await requireIdentity();
+  await clearBoughtItems(household);
+  revalidatePath('/home/shopping');
 }
 
 export async function signOutAction() {

@@ -116,6 +116,18 @@ Session cookies contain a random token; only its SHA-256 hash is stored, so a le
 
 If you expose chorely to the public internet, put it behind HTTPS.
 
+## The shared shopping list
+
+Chores and groceries are the two things every shared household actually
+coordinates, and keeping them in one place is what stops the list drifting back
+into a group chat where nothing can be ticked off.
+
+Add anything the house runs out of; everyone sees the same list. Ticking an item
+moves it to the trolley rather than deleting it, because mid-shop *"what have I
+already picked up"* is the question the list is really being asked. Items bought
+over a week ago tidy themselves away — nobody is ever going to press "clear" as
+a task in its own right.
+
 ## Reminders
 
 Each person can ask for one notification a day, at an hour they choose, and
