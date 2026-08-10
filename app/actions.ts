@@ -258,6 +258,41 @@ export async function updateMemberWeightAction(formData: FormData): Promise<void
   revalidateHousehold();
 }
 
+/**
+ * Change when — and whether — this person is reminded.
+ *
+ * Scoped to the caller alone. Shares are a household-wide agreement anyone can
+ * adjust, but nobody gets to decide when somebody else's phone buzzes.
+ */
+export async function updateReminderPrefsAction(formData: FormData): Promise<void> {
+  const { member } = await requireIdentity();
+
+  const parsed = z
+    .object({
+      remindersEnabled: z.boolean(),
+      reminderHour: z.coerce.number().int().min(0).max(23),
+    })
+    .safeParse({
+      remindersEnabled: formData.get('remindersEnabled') === 'on',
+      reminderHour: formData.get('reminderHour') ?? 9,
+    });
+
+  if (!parsed.success) return;
+
+  await getDb()
+    .update(members)
+    .set({
+      remindersEnabled: parsed.data.remindersEnabled,
+      reminderHour: parsed.data.reminderHour,
+      // Clear the stamp so a changed time can take effect today rather than
+      // silently waiting until tomorrow.
+      lastRemindedOn: null,
+    })
+    .where(eq(members.id, member.id));
+
+  revalidatePath('/home/settings');
+}
+
 export async function signOutAction() {
   await endSession();
   redirect('/');

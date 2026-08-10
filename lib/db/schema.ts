@@ -51,6 +51,23 @@ export const members = sqliteTable(
     weight: real('weight').notNull().default(1),
     /** Join order. Also the visiting order for `rotate` chores. */
     sortOrder: integer('sort_order').notNull().default(0),
+    /** Whether this person wants a daily reminder at all. Off means off. */
+    remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(true),
+    /**
+     * Local hour, 0-23, at which they have agreed to be told.
+     *
+     * Per member rather than per household: one person is up at six and
+     * another would like to be left alone until the evening.
+     */
+    reminderHour: integer('reminder_hour').notNull().default(9),
+    /**
+     * `YYYY-MM-DD` of the last reminder sent.
+     *
+     * This is what caps reminders at one a day, which in turn is what makes the
+     * sender safe to call as often as we like - and that is what lets a
+     * self-hosted instance poll on a timer instead of needing real cron.
+     */
+    lastRemindedOn: text('last_reminded_on'),
     /**
      * Members are archived, never deleted: their completions have to stay in
      * the ledger or past fairness scores silently rewrite themselves.
@@ -162,6 +179,42 @@ export const sessions = sqliteTable(
   (table) => [uniqueIndex('sessions_member_idx').on(table.tokenHash, table.memberId)],
 );
 
+/**
+ * Instance-wide key/value settings.
+ *
+ * Currently just the VAPID keypair, generated on first use. Self-hosters should
+ * not have to run a key-generation command before notifications work - the app
+ * mints its own and keeps them next to the data they belong to.
+ */
+export const appSettings = sqliteTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+});
+
+/**
+ * A browser that has agreed to receive push notifications.
+ *
+ * Keyed by endpoint, because that is what the push service considers unique;
+ * one person with a phone and a laptop has two rows.
+ */
+export const pushSubscriptions = sqliteTable(
+  'push_subscriptions',
+  {
+    endpoint: text('endpoint').primaryKey(),
+    memberId: text('member_id')
+      .notNull()
+      .references(() => members.id, { onDelete: 'cascade' }),
+    householdId: text('household_id')
+      .notNull()
+      .references(() => households.id, { onDelete: 'cascade' }),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+  },
+  (table) => [index('push_member_idx').on(table.memberId)],
+);
+
 export const householdsRelations = relations(households, ({ many }) => ({
   members: many(members),
   chores: many(chores),
@@ -195,3 +248,4 @@ export type Member = typeof members.$inferSelect;
 export type Chore = typeof chores.$inferSelect;
 export type Occurrence = typeof occurrences.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;

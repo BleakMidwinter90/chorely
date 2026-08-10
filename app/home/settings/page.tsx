@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { signOutAction, updateMemberWeightAction } from '@/app/actions';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { NotificationSetup } from '@/components/NotificationSetup';
+import { ReminderTimeForm } from '@/components/ReminderTimeForm';
 import { InviteLink } from '@/components/InviteLink';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
@@ -40,6 +42,15 @@ export default async function SettingsPage() {
       </header>
 
       <InstallPrompt />
+
+      <section className="space-y-3">
+        <h2 className="eyebrow">Reminders</h2>
+        <NotificationSetup />
+        <ReminderTimeForm
+          enabled={viewer.remindersEnabled}
+          hour={viewer.reminderHour}
+        />
+      </section>
 
       <section className="panel space-y-3 p-5">
         <h2 className="text-[15px] font-medium">Invite the people you live with</h2>
