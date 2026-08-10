@@ -15,7 +15,8 @@ import { z } from 'zod';
 
 import { requireIdentity, startSession, endSession } from '@/lib/auth/session';
 import { getDb } from '@/lib/db/client';
-import { chores, members } from '@/lib/db/schema';
+import { mintToken } from '@/lib/api/auth';
+import { apiTokens, chores, members } from '@/lib/db/schema';
 import { awayUntilFromToday } from '@/lib/domain/away';
 import { findTemplate } from '@/lib/domain/choreTemplates';
 import { MAX_EFFORT, MIN_EFFORT, type Recurrence } from '@/lib/domain/types';
@@ -298,6 +299,52 @@ export async function updateReminderPrefsAction(formData: FormData): Promise<voi
       lastRemindedOn: null,
     })
     .where(eq(members.id, member.id));
+
+  revalidatePath('/home/settings');
+}
+
+/* ----------------------------------------------------------- api tokens */
+
+export interface TokenState {
+  error?: string;
+  /** Shown exactly once, immediately after creation. Never stored in plaintext. */
+  token?: string;
+}
+
+export async function createApiTokenAction(
+  _prev: TokenState,
+  formData: FormData,
+): Promise<TokenState> {
+  const { household, member } = await requireIdentity();
+
+  const parsed = z
+    .object({ name: z.string().trim().min(1).max(60) })
+    .safeParse({ name: formData.get('name') });
+  if (!parsed.success) return { error: 'Give the token a name so you can recognise it later.' };
+
+  const { token, hash, prefix } = mintToken();
+
+  await getDb().insert(apiTokens).values({
+    tokenHash: hash,
+    householdId: household.id,
+    name: parsed.data.name,
+    prefix,
+    createdById: member.id,
+  });
+
+  revalidatePath('/home/settings');
+  return { token };
+}
+
+export async function revokeApiTokenAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+  const prefix = String(formData.get('prefix') ?? '');
+  if (!prefix) return;
+
+  // Scoped to the household, so a prefix from elsewhere revokes nothing.
+  await getDb()
+    .delete(apiTokens)
+    .where(and(eq(apiTokens.prefix, prefix), eq(apiTokens.householdId, household.id)));
 
   revalidatePath('/home/settings');
 }

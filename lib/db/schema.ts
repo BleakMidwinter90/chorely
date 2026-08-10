@@ -286,6 +286,31 @@ export const nudges = sqliteTable(
   (table) => [index('nudges_occurrence_idx').on(table.occurrenceId, table.sentOn)],
 );
 
+/**
+ * A long-lived token for scripts, automations and native clients.
+ *
+ * Stored only as a SHA-256 hash, like sessions: a leaked database backup must
+ * not hand over working credentials. The plaintext is shown once, at creation,
+ * and never again.
+ */
+export const apiTokens = sqliteTable(
+  'api_tokens',
+  {
+    tokenHash: text('token_hash').primaryKey(),
+    householdId: text('household_id')
+      .notNull()
+      .references(() => households.id, { onDelete: 'cascade' }),
+    /** What it is for, so an unrecognised token can be revoked with confidence. */
+    name: text('name').notNull(),
+    /** First eight characters, to identify a token in a list without storing it. */
+    prefix: text('prefix').notNull(),
+    createdById: text('created_by_id').references(() => members.id, { onDelete: 'set null' }),
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp_ms' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+  },
+  (table) => [index('api_tokens_household_idx').on(table.householdId)],
+);
+
 export const householdsRelations = relations(households, ({ many }) => ({
   members: many(members),
   chores: many(chores),
@@ -321,3 +346,4 @@ export type Occurrence = typeof occurrences.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type ShoppingItem = typeof shoppingItems.$inferSelect;
+export type ApiToken = typeof apiTokens.$inferSelect;

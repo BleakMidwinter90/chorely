@@ -173,6 +173,42 @@ Notifications require HTTPS, since browsers only allow service workers in a
 secure context. On a home network over plain HTTP everything else works; you
 just don't get reminders.
 
+## API and data export
+
+Everything the app does is available over HTTP, so you can wire chorely into a
+wall tablet, an NFC tag, Home Assistant, or anything else you fancy.
+
+Create a token under **Home → Your data**. It covers one household and is shown
+exactly once — only a SHA-256 hash is stored, so there is genuinely no way to
+show it again.
+
+```bash
+TOKEN=chorely_xxxxxxxxxxxx
+
+# What needs doing
+curl -H "Authorization: Bearer $TOKEN" https://your-instance/api/v1/agenda
+
+# The balance score and per-person load
+curl -H "Authorization: Bearer $TOKEN" https://your-instance/api/v1/balance
+
+# Tick something off — a token identifies a household, not a person,
+# so the ledger needs to know who to credit
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{"action":"complete","memberId":"mb_..."}' \
+     https://your-instance/api/v1/occurrences/oc_...
+
+# Everything you have, as one file
+curl -H "Authorization: Bearer $TOKEN" https://your-instance/api/v1/export -o chorely.json
+```
+
+The same endpoints accept your ordinary session cookie, so the browser needs no
+second credential.
+
+The export deliberately leaves out secrets — the join code, session tokens, API
+token hashes and push subscriptions are credentials rather than content, and an
+export is a file people email to themselves.
+
 ## Configuration
 
 | Variable | Default | Purpose |
