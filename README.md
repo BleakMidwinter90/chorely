@@ -11,11 +11,28 @@ Most homes don't argue about the schedule. They argue about who's pulling their 
 
 </div>
 
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="chorely's landing page" width="820">
+</p>
+
 ---
 
 chorely rotates your household's chores automatically and keeps an honest tally of who actually did them, so nobody has to rely on memory — or on being the person willing to bring it up.
 
 It runs on your own machine, in one container, with your data in one file. No accounts, no subscription, no cloud.
+
+<table>
+<tr>
+<td width="33%"><img src="docs/screenshots/today.png" alt="The Today screen on a phone"></td>
+<td width="33%"><img src="docs/screenshots/balance.png" alt="The Balance screen showing the score, a weekly chart and recent completions"></td>
+<td width="33%"><img src="docs/screenshots/money.png" alt="The Money screen showing who owes whom"></td>
+</tr>
+<tr>
+<td align="center"><b>Today</b> — what needs doing</td>
+<td align="center"><b>Balance</b> — who's pulling their weight</td>
+<td align="center"><b>Money</b> — settling up</td>
+</tr>
+</table>
 
 ## Why this exists
 
@@ -79,6 +96,8 @@ npm run dev
 | `npm test` | Run the test suite |
 | `npm run test:coverage` | Tests with a coverage report |
 | `npm run typecheck` | TypeScript, no emit |
+| `node scripts/demo-seed.mjs` | Fill a demo household with realistic data |
+| `node scripts/screenshots.mjs` | Re-render the README screenshots |
 
 ## How the balance score works
 

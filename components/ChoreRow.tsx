@@ -43,7 +43,15 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
   const isDue = item.status !== 'upcoming';
 
   return (
-    <li className="flex items-center gap-3 border-b border-line px-1 py-3 last:border-b-0">
+    /*
+      Wrapping rather than truncating. On a 390px phone an icon, a name, a meta
+      line and three buttons do not fit on one line, and the casualty was always
+      the chore name — "Water the…", "Take out t…". Giving the text a 10rem
+      basis lets the action cluster drop to its own line when space runs out,
+      which costs a few pixels of height and buys back the words that tell you
+      what the row is actually about.
+    */
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-1 py-3 last:border-b-0">
       <span
         aria-hidden
         className="grid size-10 shrink-0 place-items-center rounded-xl bg-sunk text-[19px] leading-none"
@@ -51,9 +59,9 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
         {item.chore.icon}
       </span>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-40">
         <p className="truncate text-[15px] leading-snug">{item.chore.name}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-xs leading-snug text-ink-faint">
+        <p className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-xs leading-snug text-ink-faint">
           <span className={isLate ? 'font-medium text-late' : undefined}>
             {whenLabel(item, today)}
           </span>
@@ -73,7 +81,7 @@ export function ChoreRow({ item, today, viewerId }: ChoreRowProps) {
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">
         {/*
           Exactly one social action, chosen by context, so the row never grows a
           row of buttons. Your own chore can be passed on; somebody else's can be
