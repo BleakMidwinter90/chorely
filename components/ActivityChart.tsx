@@ -31,13 +31,20 @@ export function ActivityChart({ weeks }: { weeks: WeekActivity[] }) {
 
   return (
     <figure className="panel p-5">
-      <div className="flex h-32 items-end gap-[2px]" role="presentation">
+      {/*
+        `items-stretch` and `h-full` are load-bearing. With `items-end` each
+        column takes its content height — zero — and a bar sized as a percentage
+        of nothing is nothing. The chart rendered completely empty while the
+        underlying numbers were perfectly correct, which no amount of checking
+        the data would have caught.
+      */}
+      <div className="flex h-32 items-stretch gap-[2px]" role="presentation">
         {weeks.map((week, index) => {
           const height = (week.points / peak) * 100;
           const isLast = index === weeks.length - 1;
 
           return (
-            <div key={week.weekStart} className="group relative flex flex-1 flex-col justify-end">
+            <div key={week.weekStart} className="relative flex h-full flex-1 flex-col justify-end">
               {/* A faint track keeps an empty week hoverable and legible as zero. */}
               <div className="absolute inset-x-0 bottom-0 top-0 rounded-t bg-sunk/60" aria-hidden />
               <div
