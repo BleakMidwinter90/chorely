@@ -11,6 +11,7 @@ const PREFIXES = {
   member: 'mb',
   chore: 'ch',
   occurrence: 'oc',
+  shopping: 'sh',
 } as const;
 
 export function createId(kind: keyof typeof PREFIXES): string {

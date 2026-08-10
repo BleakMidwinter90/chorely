@@ -87,7 +87,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
           step={1}
           value={effort}
           onChange={(event) => setEffort(Number(event.target.value))}
-          className="w-full [var(--brand)]"
+          className="w-full accent-[var(--brand)]"
         />
         <p className="mt-1 text-xs text-ink-muted">
           Bigger jobs count for more when working out who&rsquo;s pulling their weight.
@@ -127,7 +127,7 @@ export function NewChoreForm({ members }: { members: Member[] }) {
                 name="flexible"
                 type="checkbox"
                 defaultChecked
-                className="mt-0.5 h-4 w-4 [var(--brand)]"
+                className="mt-0.5 size-4 accent-[var(--brand)]"
               />
               <span>
                 Count from when it was last done

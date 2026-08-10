@@ -215,6 +215,34 @@ export const pushSubscriptions = sqliteTable(
   (table) => [index('push_member_idx').on(table.memberId)],
 );
 
+/**
+ * The shared shopping list.
+ *
+ * Chores and groceries are the two things every shared household actually
+ * coordinates, and keeping them in one app is what stops the list drifting back
+ * into a group chat where nothing can be ticked off.
+ *
+ * Bought items are kept rather than deleted: seeing what was picked up, and by
+ * whom, is most of the value on the walk home.
+ */
+export const shoppingItems = sqliteTable(
+  'shopping_items',
+  {
+    id: text('id').primaryKey(),
+    householdId: text('household_id')
+      .notNull()
+      .references(() => households.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    /** Free text: brand, quantity, "the good one". Deliberately unstructured. */
+    note: text('note'),
+    addedById: text('added_by_id').references(() => members.id, { onDelete: 'set null' }),
+    boughtById: text('bought_by_id').references(() => members.id, { onDelete: 'set null' }),
+    boughtAt: integer('bought_at', { mode: 'timestamp_ms' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+  },
+  (table) => [index('shopping_household_idx').on(table.householdId, table.boughtAt)],
+);
+
 export const householdsRelations = relations(households, ({ many }) => ({
   members: many(members),
   chores: many(chores),
@@ -249,3 +277,4 @@ export type Chore = typeof chores.$inferSelect;
 export type Occurrence = typeof occurrences.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type ShoppingItem = typeof shoppingItems.$inferSelect;

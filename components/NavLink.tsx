@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { House, ListChecks, Scale, Sparkles } from 'lucide-react';
+import { House, ListChecks, Scale, ShoppingBasket, Sparkles } from 'lucide-react';
 
 /**
  * Icons are looked up here, on the client, rather than passed in.
@@ -15,6 +15,7 @@ import { House, ListChecks, Scale, Sparkles } from 'lucide-react';
  */
 const ICONS = {
   today: ListChecks,
+  shopping: ShoppingBasket,
   balance: Scale,
   chores: Sparkles,
   home: House,
