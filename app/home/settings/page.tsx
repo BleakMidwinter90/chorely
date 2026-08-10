@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { signOutAction, updateMemberWeightAction } from '@/app/actions';
+import { AwayForm } from '@/components/AwayForm';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { NotificationSetup } from '@/components/NotificationSetup';
 import { ReminderTimeForm } from '@/components/ReminderTimeForm';
@@ -9,6 +10,7 @@ import { InviteLink } from '@/components/InviteLink';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
 import { listMembers } from '@/lib/services/households';
+import { householdToday } from '@/lib/services/scheduling';
 
 /** Presets, so nobody has to reason about a decimal weight. */
 const SHARE_OPTIONS = [
@@ -24,6 +26,7 @@ export default async function SettingsPage() {
   if (!identity) redirect('/');
 
   const { household, member: viewer } = identity;
+  const today = householdToday(household);
   const members = await listMembers(household.id);
 
   const headerList = await headers();
@@ -42,6 +45,11 @@ export default async function SettingsPage() {
       </header>
 
       <InstallPrompt />
+
+      <section className="space-y-3">
+        <h2 className="eyebrow">Away</h2>
+        <AwayForm awayFrom={viewer.awayFrom} awayUntil={viewer.awayUntil} today={today} />
+      </section>
 
       <section className="space-y-3">
         <h2 className="eyebrow">Reminders</h2>

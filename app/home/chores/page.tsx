@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { archiveChoreAction } from '@/app/actions';
 import { ChoreNotes } from '@/components/ChoreNotes';
 import { NewChoreForm } from '@/components/NewChoreForm';
+import { TemplatePicker } from '@/components/TemplatePicker';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
 import { describeRecurrence } from '@/lib/domain/recurrence';
@@ -41,7 +42,10 @@ export default async function ChoresPage() {
         </p>
       </header>
 
-      <NewChoreForm members={members} />
+      <div className="space-y-3">
+        <TemplatePicker existingNames={chores.map((chore) => chore.name)} />
+        <NewChoreForm members={members} />
+      </div>
 
       {chores.length > 0 && (
         <ul className="panel px-4">

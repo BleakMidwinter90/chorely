@@ -16,6 +16,8 @@ import { z } from 'zod';
 import { requireIdentity, startSession, endSession } from '@/lib/auth/session';
 import { getDb } from '@/lib/db/client';
 import { chores, members } from '@/lib/db/schema';
+import { awayUntilFromToday } from '@/lib/domain/away';
+import { findTemplate } from '@/lib/domain/choreTemplates';
 import { MAX_EFFORT, MIN_EFFORT, type Recurrence } from '@/lib/domain/types';
 import {
   archiveChore,
@@ -298,6 +300,73 @@ export async function updateReminderPrefsAction(formData: FormData): Promise<voi
     .where(eq(members.id, member.id));
 
   revalidatePath('/home/settings');
+}
+
+/* -------------------------------------------------------------- away mode */
+
+/**
+ * Mark yourself away, or back.
+ *
+ * Scoped to the caller. Shares are a household agreement anyone may adjust, but
+ * nobody else gets to declare when you are on holiday.
+ */
+export async function setAwayAction(formData: FormData): Promise<void> {
+  const { household, member } = await requireIdentity();
+  const today = householdToday(household);
+
+  const days = Number(formData.get('days') ?? 0);
+  const clearing = formData.get('clear') === '1' || !Number.isFinite(days) || days <= 0;
+
+  await getDb()
+    .update(members)
+    .set(
+      clearing
+        ? { awayFrom: null, awayUntil: null }
+        : { awayFrom: today, awayUntil: awayUntilFromToday(today, Math.min(days, 365)) },
+    )
+    .where(eq(members.id, member.id));
+
+  // Open work is redistributed immediately, so leaving on holiday does not
+  // leave a fortnight of chores sitting under your name.
+  await reassignOpenOccurrences(household);
+  revalidateHousehold();
+}
+
+/* ------------------------------------------------------------- templates */
+
+/**
+ * Add several chores at once from the starter library.
+ *
+ * The empty-app problem: setting up asks you to think of everything before the
+ * app has earned any trust. Ticking a list is a much easier task.
+ */
+export async function addTemplateChoresAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+  const today = householdToday(household);
+
+  const names = formData.getAll('template').map(String);
+  if (names.length === 0) return;
+
+  for (const name of names.slice(0, 40)) {
+    const template = findTemplate(name);
+    if (!template) continue;
+
+    await createChore(
+      household,
+      {
+        name: template.name,
+        icon: template.icon,
+        effort: template.effort,
+        recurrence: template.recurrence,
+        rotationMode: 'fair',
+        notes: template.note,
+      },
+      today,
+    );
+  }
+
+  revalidateHousehold();
+  redirect('/home');
 }
 
 /* ------------------------------------------------------------------ social */

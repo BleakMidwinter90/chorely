@@ -7,10 +7,11 @@ import { and, desc, eq, gte, isNotNull } from 'drizzle-orm';
 
 import { getDb, type Database } from '../db/client';
 import { chores, members, occurrences, type Chore, type Household, type Member } from '../db/schema';
+import { effectiveWeight } from '../domain/away';
 import { computeBalance, type BalanceReport, type FairnessCompletion } from '../domain/fairness';
 import type { IsoDate } from '../domain/types';
 import { listMembers } from './households';
-import { fairnessWindow } from './scheduling';
+import { fairnessWindow, toAwayPeriod } from './scheduling';
 
 export interface HouseholdBalance {
   report: BalanceReport;
@@ -51,7 +52,13 @@ export async function getHouseholdBalance(
   );
 
   const report = computeBalance(
-    roster.map((member) => ({ memberId: member.id, weight: member.weight })),
+    // Being away scales what is expected of someone, in proportion to the days
+    // they were actually here. Pausing assignment alone would leave a housemate
+    // returning from a fortnight away to an app claiming they were behind.
+    roster.map((member) => ({
+      memberId: member.id,
+      weight: effectiveWeight(member.weight, toAwayPeriod(member), window),
+    })),
     completions,
     window,
   );
