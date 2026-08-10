@@ -29,6 +29,7 @@ import {
   reassignOpenOccurrences,
 } from '@/lib/services/households';
 import { completeOccurrence, householdToday, skipOccurrence } from '@/lib/services/scheduling';
+import { addExpense, removeExpense, settleAll } from '@/lib/services/expenses';
 import { handOverOccurrence, nudgeAboutOccurrence } from '@/lib/services/social';
 import {
   addShoppingItem,
@@ -301,6 +302,52 @@ export async function updateReminderPrefsAction(formData: FormData): Promise<voi
     .where(eq(members.id, member.id));
 
   revalidatePath('/home/settings');
+}
+
+/* --------------------------------------------------------------- expenses */
+
+export async function addExpenseAction(formData: FormData): Promise<void> {
+  const { household, member } = await requireIdentity();
+
+  const parsed = z
+    .object({
+      description: z.string().trim().min(1).max(80),
+      // Entered in major units and converted here. Everything downstream is
+      // integer minor units; floating point money is how ledgers end up a
+      // penny out with no explanation.
+      amount: z.coerce.number().positive().max(1_000_000),
+      paidById: z.string().trim().min(1),
+    })
+    .safeParse({
+      description: formData.get('description'),
+      amount: formData.get('amount'),
+      paidById: formData.get('paidById') || member.id,
+    });
+
+  if (!parsed.success) return;
+
+  await addExpense(household, {
+    description: parsed.data.description,
+    amount: Math.round(parsed.data.amount * 100),
+    paidById: parsed.data.paidById,
+  });
+
+  revalidatePath('/home/money');
+}
+
+export async function settleUpAction(): Promise<void> {
+  const { household } = await requireIdentity();
+  await settleAll(household);
+  revalidatePath('/home/money');
+}
+
+export async function removeExpenseAction(formData: FormData): Promise<void> {
+  const { household } = await requireIdentity();
+  const expenseId = String(formData.get('expenseId') ?? '');
+  if (!expenseId) return;
+
+  await removeExpense(household, expenseId);
+  revalidatePath('/home/money');
 }
 
 /* ----------------------------------------------------------- api tokens */

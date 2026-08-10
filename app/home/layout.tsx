@@ -8,6 +8,7 @@ import { getIdentity } from '@/lib/auth/session';
 const NAV: Array<{ href: string; label: string; icon: NavIcon }> = [
   { href: '/home', label: 'Today', icon: 'today' },
   { href: '/home/shopping', label: 'Shopping', icon: 'shopping' },
+  { href: '/home/money', label: 'Money', icon: 'money' },
   { href: '/home/balance', label: 'Balance', icon: 'balance' },
   { href: '/home/chores', label: 'Chores', icon: 'chores' },
   { href: '/home/settings', label: 'Home', icon: 'home' },

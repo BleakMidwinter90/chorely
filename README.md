@@ -116,6 +116,19 @@ Session cookies contain a random token; only its SHA-256 hash is stored, so a le
 
 If you expose chorely to the public internet, put it behind HTTPS.
 
+## Shared costs
+
+Anything somebody fronted for the house — the shop, a bill, a new kettle. Split
+evenly to the penny, and chorely works out the shortest set of payments that
+clears everyone.
+
+Amounts are stored as integer pence. Money in floating point is a well-known way
+to end up a penny out and unable to explain why, and being unable to explain why
+is fatal for a feature whose whole job is settling an argument about money.
+
+Settled expenses stay in the ledger as history rather than being deleted —
+"what did we spend last month" is a question people ask.
+
 ## Going away
 
 Tell chorely you're away for a weekend, a week, a fortnight or a month, and two

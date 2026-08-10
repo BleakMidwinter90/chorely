@@ -8,7 +8,15 @@
  */
 
 import { relations, sql } from 'drizzle-orm';
-import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 
 import type { Recurrence, RotationMode } from '../domain/types';
 
@@ -31,6 +39,8 @@ export const households = sqliteTable('households', {
   timezone: text('timezone').notNull().default('UTC'),
   /** Trailing window the balance score is computed over. */
   fairnessWindowDays: integer('fairness_window_days').notNull().default(28),
+  /** ISO 4217, for shared expenses. */
+  currency: text('currency').notNull().default('GBP'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
 });
 
@@ -311,6 +321,62 @@ export const apiTokens = sqliteTable(
   (table) => [index('api_tokens_household_idx').on(table.householdId)],
 );
 
+/**
+ * A shared cost somebody fronted.
+ *
+ * Amounts are integer minor units — pence, cents. Money in floating point is a
+ * well-known way to end up a penny out and unable to explain why, and being
+ * unable to explain why is fatal for a feature whose whole job is settling an
+ * argument about money.
+ */
+export const expenses = sqliteTable(
+  'expenses',
+  {
+    id: text('id').primaryKey(),
+    householdId: text('household_id')
+      .notNull()
+      .references(() => households.id, { onDelete: 'cascade' }),
+    description: text('description').notNull(),
+    /** Total, in minor units. */
+    amount: integer('amount').notNull(),
+    paidById: text('paid_by_id')
+      .notNull()
+      .references(() => members.id, { onDelete: 'cascade' }),
+    /**
+     * When this was settled up. Settled expenses stay in the ledger as history
+     * but drop out of the running total.
+     */
+    settledAt: integer('settled_at', { mode: 'timestamp_ms' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(now),
+  },
+  (table) => [index('expenses_household_idx').on(table.householdId, table.settledAt)],
+);
+
+/**
+ * One person's part of one expense.
+ *
+ * Stored explicitly rather than recomputed from the member list, for the same
+ * reason effort is snapshotted onto a completed chore: somebody joining or
+ * leaving next month must not silently rewrite what was owed last month.
+ */
+export const expenseShares = sqliteTable(
+  'expense_shares',
+  {
+    expenseId: text('expense_id')
+      .notNull()
+      .references(() => expenses.id, { onDelete: 'cascade' }),
+    memberId: text('member_id')
+      .notNull()
+      .references(() => members.id, { onDelete: 'cascade' }),
+    /** This person's share, in minor units. */
+    amount: integer('amount').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.expenseId, table.memberId] }),
+    index('expense_shares_member_idx').on(table.memberId),
+  ],
+);
+
 export const householdsRelations = relations(households, ({ many }) => ({
   members: many(members),
   chores: many(chores),
@@ -347,3 +413,5 @@ export type Session = typeof sessions.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
 export type ShoppingItem = typeof shoppingItems.$inferSelect;
 export type ApiToken = typeof apiTokens.$inferSelect;
+export type Expense = typeof expenses.$inferSelect;
+export type ExpenseShare = typeof expenseShares.$inferSelect;

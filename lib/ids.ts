@@ -13,6 +13,7 @@ const PREFIXES = {
   occurrence: 'oc',
   shopping: 'sh',
   nudge: 'ng',
+  expense: 'ex',
 } as const;
 
 export function createId(kind: keyof typeof PREFIXES): string {

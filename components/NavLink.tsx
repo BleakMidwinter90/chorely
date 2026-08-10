@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { House, ListChecks, Scale, ShoppingBasket, Sparkles } from 'lucide-react';
+import { House, ListChecks, Scale, ShoppingBasket, Sparkles, Wallet } from 'lucide-react';
 
 /**
  * Icons are looked up here, on the client, rather than passed in.
@@ -16,6 +16,7 @@ import { House, ListChecks, Scale, ShoppingBasket, Sparkles } from 'lucide-react
 const ICONS = {
   today: ListChecks,
   shopping: ShoppingBasket,
+  money: Wallet,
   balance: Scale,
   chores: Sparkles,
   home: House,
@@ -43,12 +44,12 @@ export function NavLink({ href, children, icon, stacked = false }: NavLinkProps)
       <Link
         href={href}
         aria-current={isActive ? 'page' : undefined}
-        className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium tracking-wide transition-colors ${
+        className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2.5 text-[10px] font-medium tracking-tight transition-colors ${
           isActive ? 'text-brand' : 'text-ink-faint'
         }`}
       >
-        <Icon size={20} strokeWidth={isActive ? 2.1 : 1.6} aria-hidden />
-        {children}
+        <Icon size={19} strokeWidth={isActive ? 2.1 : 1.6} aria-hidden />
+        <span className="w-full truncate text-center">{children}</span>
       </Link>
     );
   }
