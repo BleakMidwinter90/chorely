@@ -1,7 +1,9 @@
 import { headers } from 'next/headers';
+import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 
 import { signOutAction, updateMemberWeightAction } from '@/app/actions';
+import { ApiTokens } from '@/components/ApiTokens';
 import { AwayForm } from '@/components/AwayForm';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { NotificationSetup } from '@/components/NotificationSetup';
@@ -9,6 +11,8 @@ import { ReminderTimeForm } from '@/components/ReminderTimeForm';
 import { InviteLink } from '@/components/InviteLink';
 import { SubmitButton } from '@/components/SubmitButton';
 import { getIdentity } from '@/lib/auth/session';
+import { getDb } from '@/lib/db/client';
+import { apiTokens } from '@/lib/db/schema';
 import { listMembers } from '@/lib/services/households';
 import { householdToday } from '@/lib/services/scheduling';
 
@@ -28,6 +32,17 @@ export default async function SettingsPage() {
   const { household, member: viewer } = identity;
   const today = householdToday(household);
   const members = await listMembers(household.id);
+  const tokens = (
+    await getDb()
+      .select({
+        prefix: apiTokens.prefix,
+        name: apiTokens.name,
+        lastUsedAt: apiTokens.lastUsedAt,
+      })
+      .from(apiTokens)
+      .where(eq(apiTokens.householdId, household.id))
+      .orderBy(apiTokens.createdAt)
+  ).map((token) => ({ ...token, lastUsedAt: token.lastUsedAt ?? null }));
 
   const headerList = await headers();
   const host = headerList.get('x-forwarded-host') ?? headerList.get('host') ?? 'localhost:3000';
@@ -109,6 +124,21 @@ export default async function SettingsPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="eyebrow">Your data</h2>
+        <ApiTokens tokens={tokens} />
+        <a
+          href="/api/v1/export"
+          className="inline-block text-sm text-ink-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-ink"
+        >
+          Download everything as JSON
+        </a>
+        <p className="text-xs text-pretty text-ink-faint">
+          Your whole household, in one file. Secrets are left out — an export is something
+          people email to themselves.
+        </p>
       </section>
 
       <section className="space-y-3">
